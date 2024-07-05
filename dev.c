@@ -1,11 +1,13 @@
 #include<stdio.h>
 #include<stdlib.h>
+#include<string.h>
 #include<time.h>
 
 #define Physical 0
 #define Special 1
 #define Other 2
 #define EV_MAX 510
+#define LEVEL 60
 
 typedef struct MONSTER MONSTER;
 typedef struct MOVE MOVE;
@@ -76,8 +78,18 @@ EFFORT_VALUE Random_EV(void);
 INDIVIDUAL_VALUE Random_IV(void);
 void battle(struct MONSTER mon1, struct MONSTER mon2);
 
+MONSTER (*ch_origin)(MONSTER *pmon);
+MOVES (*ch_move)(MOVE *pmv);
+EFFORT_VALUE (*rand_ev)(void);
+INDIVIDUAL_VALUE (*rand_iv)(void);
+
 int main(int argv,const char* argc[])
 {
+    ch_origin = choose_origin;
+    ch_move = choose_moves;
+    rand_ev = Random_EV;
+    rand_iv = Random_IV;
+
     MOVE mv[13] = {
         {"tyoipanti", Physical, 40},
         {"panti", Physical, 60},
@@ -114,12 +126,18 @@ int main(int argv,const char* argc[])
     //printf("%d, %d, %d, %d, %d, %d\n", iv.hitpoint, iv.attack, iv.block, iv.contact, iv.diffence, iv.speed);
     POKEMON poke1, poke2;
     poke1.origin = choose_origin(robo);
-    poke1.nickname = "taro";
+    strcpy(poke1.nickname, "taro");
     poke1.moves = choose_moves(mv);
     poke1.effort = Random_EV();
-    poke1.indivi = Random_IV
+    poke1.indivi = Random_IV();
+    poke1.hitpoint = (poke1.origin.hitpoint * 2 + poke1.indivi.hitpoint + poke1.effort.hitpoint / 4) * LEVEL / 100 + LEVEL + 10;
+    poke1.attack = (poke1.origin.attack * 2 + poke1.indivi.attack + poke1.effort.attack / 4) * LEVEL / 100 + 5;
+    poke1.block = (poke1.origin.block * 2 + poke1.indivi.block + poke1.effort.block / 4) * LEVEL / 100 + 5;
+    poke1.contact = (poke1.origin.contact * 2 + poke1.indivi.contact + poke1.effort.contact / 4) * LEVEL / 100 + 5;
+    poke1.diffence = (poke1.origin.diffence * 2 + poke1.indivi.diffence + poke1.effort.diffence / 4) * LEVEL / 100 + 5;
+    poke1.speed = (poke1.origin.speed * 2 + poke1.indivi.speed + poke1.effort.speed / 4) * LEVEL / 100 + 5;
 
-
+    printf("%10s\n", poke1.nickname);
     return 0;
 }
 
@@ -217,6 +235,11 @@ INDIVIDUAL_VALUE Random_IV(void)
 
     return temp;
 }
+
+//POKEMON make_poke(void)
+//{
+//    
+//}
 
 void battle(struct MONSTER mon1, struct MONSTER mon2)
 {
