@@ -6,6 +6,8 @@
 #define Physical 0
 #define Special 1
 #define Other 2
+#define Buff 3
+#define Debuff 4
 #define EV_MAX 510
 #define LEVEL 60
 
@@ -82,7 +84,7 @@ INDIVIDUAL_VALUE Random_IV(void);
 
 void battle(struct MONSTER mon1, struct MONSTER mon2);
 
-//関数ポインタを定義してみた
+//関数ポインタを定義してみた(tukawanai...)
 //MONSTER (*ch_origin)(MONSTER *pmon);
 //MOVES (*ch_move)(MOVE *pmv);
 //EFFORT_VALUE (*rand_ev)(void);
@@ -90,7 +92,7 @@ void battle(struct MONSTER mon1, struct MONSTER mon2);
 
 int main(int argv,const char* argc[])
 {
-    //関数ポインタを定義してみた
+    //関数ポインタを定義してみた(tukawanai...)
     //ch_origin = choose_origin;
     //ch_move = choose_moves;
     //rand_ev = Random_EV;
@@ -105,11 +107,11 @@ int main(int argv,const char* argc[])
         {"bi-mu", Special, 60},
         {"kyoubi-mu", Special, 80},
         {"tyoubi-mu", Special, 100},
-        {"bougyo", Other, 0},
-        {"yarukidasu", Other, 0},
-        {"aruminokarada", Other, 0},
-        {"itagaru", Other, 0},
-        {"bunkaisuru", Other, 0}
+        //{"bougyo", Other, 0},
+        {"yarukidasu", Buff, 0},
+        {"arumidedekitemasu", Buff, 0},
+        {"itaihurisuru", Debuff, 0},
+        {"bunkaisuru", Debuff, 0}
         };
 
     MONSTER robo[3] = {
@@ -264,8 +266,6 @@ POKEMON make_poke(MOVE *pmv, MONSTER *pmon)
     char *s;
 
     temp.origin = choose_origin(pmon);
-   // while (fgets(s, 32, stdin) != NULL) 
-   //     strcpy(temp.nickname, s);
     strcpy(temp.nickname, s = nickname());
     temp.moves = choose_moves(pmv);
     temp.effort = Random_EV();
@@ -309,3 +309,25 @@ void battle(struct MONSTER mon1, struct MONSTER mon2)
     winner = ((first.hitpoint == 0) ? (first.name) : (second.name));
     printf("winner!%s!!!\n", winner); 
 }
+
+/*
+void battle(struct POKEMON r1, struct POKEMON r2)
+{
+    POKEMON first, second;
+    MOVE r1mv, r2mv;
+
+    printf("Battle start!");
+
+    while (True) {
+        first = ((r1.speed > r2.speed) ? r1 : r2);
+        second = ((r1.speed <= r2.speed) ? r1 : r2);
+        if (r1.speed == r2.speed) {
+            int n = Random(1, 10000);
+            
+        
+        r1mv = r1.moves + Random(0, 3);
+        r2mv = r2.moves + Random(0, 3);
+
+        if (r1mv 
+}
+*/
