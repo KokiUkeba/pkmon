@@ -8,8 +8,11 @@
 #define Other 2
 #define Buff 3
 #define Debuff 4
-#define EV_MAX 510
+#define EV_ALL 510
+#define EV_MAX 252
+#define IV_MAX 31
 #define LEVEL 60
+#define CORRECTION 0.05
 
 typedef struct MONSTER MONSTER;
 typedef struct MOVE MOVE;
@@ -81,8 +84,8 @@ EFFORT_VALUE Random_EV(void);
 char* nickname(void);
 POKEMON make_poke(MOVE *pmv, MONSTER *pmon);
 INDIVIDUAL_VALUE Random_IV(void);
-
 void battle(struct MONSTER mon1, struct MONSTER mon2);
+POKEMON Battle(struct POKEMON r1, struct POKEMON r2);
 
 //関数ポインタを定義してみた(tukawanai...)
 //MONSTER (*ch_origin)(MONSTER *pmon);
@@ -107,7 +110,7 @@ int main(int argv,const char* argc[])
         {"bi-mu", Special, 60},
         {"kyoubi-mu", Special, 80},
         {"tyoubi-mu", Special, 100},
-        //{"bougyo", Other, 0},
+        {"bougyo", Other, 0},
         {"yarukidasu", Buff, 0},
         {"arumidedekitemasu", Buff, 0},
         {"itaihurisuru", Debuff, 0},
@@ -148,6 +151,7 @@ int main(int argv,const char* argc[])
     poke2 = make_poke(mv, robo);
     printf("%10s\n", poke1.nickname);
     printf("%10s\n", poke2.nickname);
+    Battle(poke1, poke2);
     return 0;
 }
 
@@ -192,36 +196,36 @@ EFFORT_VALUE Random_EV(void)
     EFFORT_VALUE temp;
     int n, i = 0;
 
-    while (i <= EV_MAX) {
+    while (i <= EV_ALL) {
         n = Random(0,5);
         switch (n) {
         case 0:
-            if (temp.hitpoint == 252)
+            if (temp.hitpoint == EV_MAX)
                 continue;
             temp.hitpoint++;
             break;
         case 1:
-            if (temp.attack == 252)
+            if (temp.attack == EV_MAX)
                 continue;
             temp.attack++;
             break;
         case 2:
-            if (temp.block == 252)
+            if (temp.block == EV_MAX)
                 continue;
             temp.block++;
             break;
         case 3:
-            if (temp.contact == 252)
+            if (temp.contact == EV_MAX)
                 continue;
             temp.contact++;
             break;
         case 4:
-            if (temp.diffence == 252)
+            if (temp.diffence == EV_MAX)
                 continue;
             temp.diffence++;
             break;
         case 5:
-            if (temp.speed == 252)
+            if (temp.speed == EV_MAX)
                 continue;
             temp.speed++;
             break;
@@ -236,12 +240,12 @@ INDIVIDUAL_VALUE Random_IV(void)
 {
     INDIVIDUAL_VALUE temp;
 
-    temp.hitpoint = Random(0, 31);
-    temp.attack = Random(0, 31);
-    temp.block = Random(0, 31);
-    temp.contact = Random(0, 31);
-    temp.diffence = Random(0, 31);
-    temp.speed = Random(0, 31);
+    temp.hitpoint = Random(0, IV_MAX);
+    temp.attack = Random(0, IV_MAX);
+    temp.block = Random(0, IV_MAX);
+    temp.contact = Random(0, IV_MAX);
+    temp.diffence = Random(0, IV_MAX);
+    temp.speed = Random(0, IV_MAX);
 
     return temp;
 }
@@ -310,24 +314,129 @@ void battle(struct MONSTER mon1, struct MONSTER mon2)
     printf("winner!%s!!!\n", winner); 
 }
 
-/*
-void battle(struct POKEMON r1, struct POKEMON r2)
+MOVE* select_mv(struct POKEMON mon1)
+{
+    MOVE *temp;
+
+    temp = mon1.moves.move + Random(0, 3);
+
+    return temp;
+}
+
+
+POKEMON Battle(struct POKEMON r1, struct POKEMON r2)
 {
     POKEMON first, second;
-    MOVE r1mv, r2mv;
+    MOVE *r1mv, *r2mv;
+    int damage;
+    int turn = 0;
+    
+    //先攻後攻を決める
+    first = ((r1.speed > r2.speed) ? r1 : r2);
+    second = ((r1.speed <= r2.speed) ? r1 : r2);
+    //if (r1.speed == r2.speed) {
+    //    int n = Random(1, 10000);
+    //    first = ((n % 2 == 0) ? r1 : r2);
+    //    second = ((n % 2 != 0) ? r1: r2);
+    //}
 
-    printf("Battle start!");
+    printf("Battle start!\n");
 
-    while (True) {
-        first = ((r1.speed > r2.speed) ? r1 : r2);
-        second = ((r1.speed <= r2.speed) ? r1 : r2);
-        if (r1.speed == r2.speed) {
-            int n = Random(1, 10000);
-            
+    while (1) {
+        //技の選択(ランダム)今後入力を受け付けることを想定し、別で関数とした
+        r1mv = select_mv(first);
+        r2mv = select_mv(second);
+
+        if (r1mv->category != Other && r2mv->category == Other) { 
+            printf("second:%s:%s\n", second.nickname, r2mv->name);
+        }
+
+        printf("first:%s:%s\n", first.nickname, r1mv->name);
         
-        r1mv = r1.moves + Random(0, 3);
-        r2mv = r2.moves + Random(0, 3);
+        switch (r1mv->category) {
+            case Physical:
+                if (r2mv->name == "bougyo")
+                    break;
+                damage = (int)((int)((int)((double)LEVEL * 0.4 + 2) * (double)r1mv->power * (double)first.attack / (double)second.block) / 50. + 2);
+                second.hitpoint -= (damage > 0 ? damage : 1);
+                break;
+            case Special:
+                if (r2mv->name == "bougyo")
+                    break;
+                damage = (int)((int)((int)((double)LEVEL * 0.4 + 2) * (double)r1mv->power * (double)first.contact / (double)second.diffence) / 50. + 2);
+                second.hitpoint -= (damage > 0 ? damage : 1);
+                break;
+            case Buff:
+                if (r1mv->name == "yarukidasu") {
+                    first.attack *= 1 + CORRECTION;
+                    first.contact *= 1 + CORRECTION;
+                }
+                else {
+                    first.block *= 1 + CORRECTION;
+                    first.diffence *= 1 + CORRECTION;
+                }
+                break;
+            case Debuff:
+                if (r1mv->name == "itaihurisuru") {
+                    second.attack *= 1 - CORRECTION;
+                    second.contact *= 1 - CORRECTION;
+                }
+                else {
+                    second.block *= 1 - CORRECTION;
+                    second.diffence *= 1 - CORRECTION;
+                }
+                break;
+        }
+        if (second.hitpoint <= 0) {
+            second.hitpoint = 0;
+            printf("winner : %s!\n", first.nickname);
+            return first;
+        }
 
-        if (r1mv 
+        if (r2mv->category != Other)
+            printf("second:%s:%s\n", second.nickname, r2mv->name);
+
+        switch (r2mv->category) {
+            case Physical:
+                if (r1mv->name == "bougyo")
+                    break;
+                damage = (int)((int)((int)((double)LEVEL * 0.4 + 2) * (double)r2mv->power * (double)second.attack / (double)first.block) / 50. + 2);
+                first.hitpoint -= (damage > 0 ? damage : 1);
+                break;
+            case Special:
+                if (r1mv->name == "bougyo")
+                    break;
+                damage = (int)((int)((int)((double)LEVEL * 0.4 + 2) * (double)r2mv->power * (double)second.contact / (double)first.diffence) / 50. + 2);
+                first.hitpoint -= (damage > 0 ? damage : 1);
+                break;
+            case Buff:
+                if (r2mv->name == "yarukidasu") {
+                    second.attack *= 1 + CORRECTION;
+                    second.contact *= 1 + CORRECTION;
+                }
+                else {
+                    second.block *= 1 + CORRECTION;
+                    second.diffence *= 1 + CORRECTION;
+                }
+                break;
+            case Debuff:
+                if (r2mv->name == "itaihurisuru") {
+                    first.attack *= 1 - CORRECTION;
+                    first.contact *= 1 - CORRECTION;
+                }
+                else {
+                    first.block *= 1 - CORRECTION;
+                    first.diffence *= 1 - CORRECTION;
+                }
+                break;
+        }
+        if (first.hitpoint <= 0) {
+            first.hitpoint = 0;
+            printf("winner : %s!\n", second.nickname);
+            return second;
+        }
+        
+        printf("turn%3d:first %10s HP=%3d :second %10s HP=%3d\n", turn, first.nickname, first.hitpoint, second.nickname, second.hitpoint);
+        turn++;
+    }
 }
-*/
