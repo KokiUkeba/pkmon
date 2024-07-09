@@ -12,7 +12,7 @@
 #define EV_MAX 252
 #define IV_MAX 31
 #define LEVEL 60
-#define CORRECTION 0.05
+#define CORRECTION 0.25
 
 typedef struct MONSTER MONSTER;
 typedef struct MOVE MOVE;
@@ -21,16 +21,15 @@ typedef struct EFFORT_VALUE EFFORT_VALUE;
 typedef struct INDIVIDUAL_VALUE INDIVIDUAL_VALUE;
 typedef struct POKEMON POKEMON;
 
-
 struct MOVE {
-    char name[256];
+    char name[64];
     int category;
     int power;
     //int accuracy
 };
 
 struct MONSTER {
-    char name[256];
+    char name[64];
     int number;
     int hitpoint;
     int attack;
@@ -65,7 +64,7 @@ struct INDIVIDUAL_VALUE {
 
 struct POKEMON {
     MONSTER origin;
-    char nickname[256];
+    char nickname[64];
     MOVES moves;
     EFFORT_VALUE effort;
     INDIVIDUAL_VALUE indivi;
@@ -81,8 +80,9 @@ int Random(int min, int max);
 MONSTER choose_origin(MONSTER *pmon);
 MOVES choose_moves(MOVE *pmv);
 EFFORT_VALUE Random_EV(void);
-char* nickname(void);
-POKEMON make_poke(MOVE *pmv, MONSTER *pmon);
+void nickname(char *nicknames);
+//char* nickname(void);
+POKEMON make_poke(MOVE *pmv, MONSTER *pmon, char *nick);
 INDIVIDUAL_VALUE Random_IV(void);
 void battle(struct MONSTER mon1, struct MONSTER mon2);
 POKEMON Battle(struct POKEMON r1, struct POKEMON r2);
@@ -135,21 +135,26 @@ int main(int argv,const char* argc[])
     //printf("%15s, %15s\n", chosen.move[2].name, chosen.move[3].name);
     //printf("%d, %d, %d, %d, %d, %d\n", ev.hitpoint, ev.attack, ev.block, ev.contact, ev.diffence, ev.speed);
     //printf("%d, %d, %d, %d, %d, %d\n", iv.hitpoint, iv.attack, iv.block, iv.contact, iv.diffence, iv.speed);
-    POKEMON poke1, poke2;
-    poke1.origin = choose_origin(robo);
-    strcpy(poke1.nickname, "taro");
-    poke1.moves = choose_moves(mv);
-    poke1.effort = Random_EV();
-    poke1.indivi = Random_IV();
-    poke1.hitpoint = (poke1.origin.hitpoint * 2 + poke1.indivi.hitpoint + poke1.effort.hitpoint / 4) * LEVEL / 100 + LEVEL + 10;
-    poke1.attack = (poke1.origin.attack * 2 + poke1.indivi.attack + poke1.effort.attack / 4) * LEVEL / 100 + 5;
-    poke1.block = (poke1.origin.block * 2 + poke1.indivi.block + poke1.effort.block / 4) * LEVEL / 100 + 5;
-    poke1.contact = (poke1.origin.contact * 2 + poke1.indivi.contact + poke1.effort.contact / 4) * LEVEL / 100 + 5;
-    poke1.diffence = (poke1.origin.diffence * 2 + poke1.indivi.diffence + poke1.effort.diffence / 4) * LEVEL / 100 + 5;
-    poke1.speed = (poke1.origin.speed * 2 + poke1.indivi.speed + poke1.effort.speed / 4) * LEVEL / 100 + 5;
+    //poke1.origin = choose_origin(robo);
+    //strcpy(poke1.nickname, "taro");
+    //poke1.moves = choose_moves(mv);
+    //poke1.effort = Random_EV();
+    //poke1.indivi = Random_IV();
+    //poke1.hitpoint = (poke1.origin.hitpoint * 2 + poke1.indivi.hitpoint + poke1.effort.hitpoint / 4) * LEVEL / 100 + LEVEL + 10;
+    //poke1.attack = (poke1.origin.attack * 2 + poke1.indivi.attack + poke1.effort.attack / 4) * LEVEL / 100 + 5;
+    //poke1.block = (poke1.origin.block * 2 + poke1.indivi.block + poke1.effort.block / 4) * LEVEL / 100 + 5;
+    //poke1.contact = (poke1.origin.contact * 2 + poke1.indivi.contact + poke1.effort.contact / 4) * LEVEL / 100 + 5;
+    //poke1.diffence = (poke1.origin.diffence * 2 + poke1.indivi.diffence + poke1.effort.diffence / 4) * LEVEL / 100 + 5;
+    //poke1.speed = (poke1.origin.speed * 2 + poke1.indivi.speed + poke1.effort.speed / 4) * LEVEL / 100 + 5;
 
-    poke2 = make_poke(mv, robo);
+    char nicka[64] = {"karakurikozo"};
+    char nickb[64];
+    nickname(nickb);
+    //printf("%s\n", nickb);
+    POKEMON poke1, poke2;
+    poke1 = make_poke(mv, robo, nicka);
     printf("%10s\n", poke1.nickname);
+    poke2 = make_poke(mv, robo, nickb);
     printf("%10s\n", poke2.nickname);
     Battle(poke1, poke2);
     return 0;
@@ -187,7 +192,11 @@ MOVES choose_moves(MOVE *pmv)
         temp.move[i++] = *(pmv + k);
         n[k] = -1;
     }
-        
+
+    for (i = 0; i < 4; i++) 
+        if (temp.move->category != (Physical && Special)) 
+            choose_moves(pmv);
+
     return temp;
 }
 
@@ -250,27 +259,34 @@ INDIVIDUAL_VALUE Random_IV(void)
     return temp;
 }
 
+void nickname(char *nicknames)
+{
+    char buf[64];
+    int i = 0;
+
+    while (fgets(buf, 64, stdin) != NULL){
+        while (buf[i] != '\n')
+            *(nicknames++) = buf[i++];
+    }
+}
+/*
 char* nickname(void)
 {
     static POKEMON temp;
-    char nick[256];
+    char nick[64] = {"nickname"};
 
-    while (fgets(nick, 256, stdin) != NULL) 
-        if (nick[strlen(nick) - 1] == '\n')
-            nick[strlen(nick) - 1] = '\0';
+    while (fgets(nick, 64, stdin) != NULL) { 
+        }
         
-    strcpy(temp.nickname, nick);
-
     return temp.nickname;
 }
-
-POKEMON make_poke(MOVE *pmv, MONSTER *pmon)
+*/
+POKEMON make_poke(MOVE *pmv, MONSTER *pmon, char *nick)
 {
     POKEMON temp;
-    char *s;
 
     temp.origin = choose_origin(pmon);
-    strcpy(temp.nickname, s = nickname());
+    strcpy(temp.nickname, nick);
     temp.moves = choose_moves(pmv);
     temp.effort = Random_EV();
     temp.indivi = Random_IV();
@@ -329,7 +345,7 @@ POKEMON Battle(struct POKEMON r1, struct POKEMON r2)
     POKEMON first, second;
     MOVE *r1mv, *r2mv;
     int damage;
-    int turn = 0;
+    int turn = 1;
     
     //先攻後攻を決める
     first = ((r1.speed > r2.speed) ? r1 : r2);
@@ -387,6 +403,7 @@ POKEMON Battle(struct POKEMON r1, struct POKEMON r2)
                 }
                 break;
         }
+        printf("second:hitpoint=%d\n", (second.hitpoint>=0) ? second.hitpoint : 0);
         if (second.hitpoint <= 0) {
             second.hitpoint = 0;
             printf("winner : %s!\n", first.nickname);
@@ -430,6 +447,7 @@ POKEMON Battle(struct POKEMON r1, struct POKEMON r2)
                 }
                 break;
         }
+        printf("first:hitpoint=%d\n", (first.hitpoint>=0) ? first.hitpoint : 0);
         if (first.hitpoint <= 0) {
             first.hitpoint = 0;
             printf("winner : %s!\n", second.nickname);
@@ -437,6 +455,8 @@ POKEMON Battle(struct POKEMON r1, struct POKEMON r2)
         }
         
         printf("turn%3d:first %10s HP=%3d :second %10s HP=%3d\n", turn, first.nickname, first.hitpoint, second.nickname, second.hitpoint);
+        printf("--------------------------------------------\n");
         turn++;
     }
 }
+
