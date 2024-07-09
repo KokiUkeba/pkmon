@@ -12,7 +12,7 @@
 #define EV_MAX 252
 #define IV_MAX 31
 #define LEVEL 60
-#define CORRECTION 0.25
+#define CORRECTION 0.05
 
 typedef struct MONSTER MONSTER;
 typedef struct MOVE MOVE;
@@ -21,15 +21,16 @@ typedef struct EFFORT_VALUE EFFORT_VALUE;
 typedef struct INDIVIDUAL_VALUE INDIVIDUAL_VALUE;
 typedef struct POKEMON POKEMON;
 
+
 struct MOVE {
-    char name[64];
+    char name[256];
     int category;
     int power;
     //int accuracy
 };
 
 struct MONSTER {
-    char name[64];
+    char name[256];
     int number;
     int hitpoint;
     int attack;
@@ -64,7 +65,7 @@ struct INDIVIDUAL_VALUE {
 
 struct POKEMON {
     MONSTER origin;
-    char nickname[64];
+    char nickname[256];
     MOVES moves;
     EFFORT_VALUE effort;
     INDIVIDUAL_VALUE indivi;
@@ -80,9 +81,8 @@ int Random(int min, int max);
 MONSTER choose_origin(MONSTER *pmon);
 MOVES choose_moves(MOVE *pmv);
 EFFORT_VALUE Random_EV(void);
-void nickname(char *nicknames);
-//char* nickname(void);
-POKEMON make_poke(MOVE *pmv, MONSTER *pmon, char *nick);
+char* nickname(void);
+POKEMON make_poke(MOVE *pmv, MONSTER *pmon);
 INDIVIDUAL_VALUE Random_IV(void);
 void battle(struct MONSTER mon1, struct MONSTER mon2);
 POKEMON Battle(struct POKEMON r1, struct POKEMON r2);
@@ -135,28 +135,24 @@ int main(int argv,const char* argc[])
     //printf("%15s, %15s\n", chosen.move[2].name, chosen.move[3].name);
     //printf("%d, %d, %d, %d, %d, %d\n", ev.hitpoint, ev.attack, ev.block, ev.contact, ev.diffence, ev.speed);
     //printf("%d, %d, %d, %d, %d, %d\n", iv.hitpoint, iv.attack, iv.block, iv.contact, iv.diffence, iv.speed);
-    //poke1.origin = choose_origin(robo);
-    //strcpy(poke1.nickname, "taro");
-    //poke1.moves = choose_moves(mv);
-    //poke1.effort = Random_EV();
-    //poke1.indivi = Random_IV();
-    //poke1.hitpoint = (poke1.origin.hitpoint * 2 + poke1.indivi.hitpoint + poke1.effort.hitpoint / 4) * LEVEL / 100 + LEVEL + 10;
-    //poke1.attack = (poke1.origin.attack * 2 + poke1.indivi.attack + poke1.effort.attack / 4) * LEVEL / 100 + 5;
-    //poke1.block = (poke1.origin.block * 2 + poke1.indivi.block + poke1.effort.block / 4) * LEVEL / 100 + 5;
-    //poke1.contact = (poke1.origin.contact * 2 + poke1.indivi.contact + poke1.effort.contact / 4) * LEVEL / 100 + 5;
-    //poke1.diffence = (poke1.origin.diffence * 2 + poke1.indivi.diffence + poke1.effort.diffence / 4) * LEVEL / 100 + 5;
-    //poke1.speed = (poke1.origin.speed * 2 + poke1.indivi.speed + poke1.effort.speed / 4) * LEVEL / 100 + 5;
-
-    char nicka[64] = {"karakurikozo"};
-    char nickb[64];
-    nickname(nickb);
-    //printf("%s\n", nickb);
     POKEMON poke1, poke2;
-    poke1 = make_poke(mv, robo, nicka);
+    poke1.origin = choose_origin(robo);
+    strcpy(poke1.nickname, "karakurikozo");
+    poke1.moves = choose_moves(mv);
+    poke1.effort = Random_EV();
+    poke1.indivi = Random_IV();
+    poke1.hitpoint = (poke1.origin.hitpoint * 2 + poke1.indivi.hitpoint + poke1.effort.hitpoint / 4) * LEVEL / 100 + LEVEL + 10;
+    poke1.attack = (poke1.origin.attack * 2 + poke1.indivi.attack + poke1.effort.attack / 4) * LEVEL / 100 + 5;
+    poke1.block = (poke1.origin.block * 2 + poke1.indivi.block + poke1.effort.block / 4) * LEVEL / 100 + 5;
+    poke1.contact = (poke1.origin.contact * 2 + poke1.indivi.contact + poke1.effort.contact / 4) * LEVEL / 100 + 5;
+    poke1.diffence = (poke1.origin.diffence * 2 + poke1.indivi.diffence + poke1.effort.diffence / 4) * LEVEL / 100 + 5;
+    poke1.speed = (poke1.origin.speed * 2 + poke1.indivi.speed + poke1.effort.speed / 4) * LEVEL / 100 + 5;
+
+    poke2 = make_poke(mv, robo);
     printf("%10s\n", poke1.nickname);
-    poke2 = make_poke(mv, robo, nickb);
     printf("%10s\n", poke2.nickname);
-    Battle(poke1, poke2);
+    POKEMON winner = Battle(poke1, poke2);
+    printf("%d\n", winner.origin.number);
     return 0;
 }
 
@@ -192,11 +188,7 @@ MOVES choose_moves(MOVE *pmv)
         temp.move[i++] = *(pmv + k);
         n[k] = -1;
     }
-
-    for (i = 0; i < 4; i++) 
-        if (temp.move->category != (Physical && Special)) 
-            choose_moves(pmv);
-
+        
     return temp;
 }
 
@@ -259,34 +251,33 @@ INDIVIDUAL_VALUE Random_IV(void)
     return temp;
 }
 
-void nickname(char *nicknames)
-{
-    char buf[64];
-    int i = 0;
-
-    while (fgets(buf, 64, stdin) != NULL){
-        while (buf[i] != '\n')
-            *(nicknames++) = buf[i++];
-    }
-}
-/*
 char* nickname(void)
 {
     static POKEMON temp;
-    char nick[64] = {"nickname"};
+    char nick[256];
+    static long int gene;
 
-    while (fgets(nick, 64, stdin) != NULL) { 
-        }
+    /*
+    while (fgets(nick, 256, stdin) != NULL) 
+        if (nick[strlen(nick) - 1] == '\n')
+            nick[strlen(nick) - 1] = '\0';
         
+    strcpy(temp.nickname, nick);
+    */
+
+    sprintf(nick, "%ld", ++gene);
+    strcpy(temp.nickname, nick);
+
     return temp.nickname;
 }
-*/
-POKEMON make_poke(MOVE *pmv, MONSTER *pmon, char *nick)
+
+POKEMON make_poke(MOVE *pmv, MONSTER *pmon)
 {
     POKEMON temp;
+    char *s;
 
     temp.origin = choose_origin(pmon);
-    strcpy(temp.nickname, nick);
+    strcpy(temp.nickname, s = nickname());
     temp.moves = choose_moves(pmv);
     temp.effort = Random_EV();
     temp.indivi = Random_IV();
@@ -300,6 +291,7 @@ POKEMON make_poke(MOVE *pmv, MONSTER *pmon, char *nick)
     return temp;
 }
 
+/*
 void battle(struct MONSTER mon1, struct MONSTER mon2)
 {
     struct MONSTER first;
@@ -329,6 +321,7 @@ void battle(struct MONSTER mon1, struct MONSTER mon2)
     winner = ((first.hitpoint == 0) ? (first.name) : (second.name));
     printf("winner!%s!!!\n", winner); 
 }
+*/
 
 MOVE* select_mv(struct POKEMON mon1)
 {
@@ -459,4 +452,3 @@ POKEMON Battle(struct POKEMON r1, struct POKEMON r2)
         turn++;
     }
 }
-

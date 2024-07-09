@@ -255,11 +255,17 @@ char* nickname(void)
 {
     static POKEMON temp;
     char nick[256];
+    static long int gene;
 
+    /*
     while (fgets(nick, 256, stdin) != NULL) 
         if (nick[strlen(nick) - 1] == '\n')
             nick[strlen(nick) - 1] = '\0';
         
+    strcpy(temp.nickname, nick);
+    */
+
+    sprintf(nick, "%ld", ++gene);
     strcpy(temp.nickname, nick);
 
     return temp.nickname;
@@ -285,6 +291,7 @@ POKEMON make_poke(MOVE *pmv, MONSTER *pmon)
     return temp;
 }
 
+/*
 void battle(struct MONSTER mon1, struct MONSTER mon2)
 {
     struct MONSTER first;
@@ -314,6 +321,7 @@ void battle(struct MONSTER mon1, struct MONSTER mon2)
     winner = ((first.hitpoint == 0) ? (first.name) : (second.name));
     printf("winner!%s!!!\n", winner); 
 }
+*/
 
 MOVE* select_mv(struct POKEMON mon1)
 {
@@ -341,7 +349,7 @@ POKEMON Battle(struct POKEMON r1, struct POKEMON r2)
     //    second = ((n % 2 != 0) ? r1: r2);
     //}
 
-    printf("Battle start!\n");
+    //printf("Battle start!\n");
 
     while (1) {
         //技の選択(ランダム)今後入力を受け付けることを想定し、別で関数とした
@@ -349,10 +357,10 @@ POKEMON Battle(struct POKEMON r1, struct POKEMON r2)
         r2mv = select_mv(second);
 
         if (r1mv->category != Other && r2mv->category == Other) { 
-            printf("second:%s:%s\n", second.nickname, r2mv->name);
+            //printf("second:%s:%s\n", second.nickname, r2mv->name);
         }
 
-        printf("first:%s:%s\n", first.nickname, r1mv->name);
+        //printf("first:%s:%s\n", first.nickname, r1mv->name);
         
         switch (r1mv->category) {
             case Physical:
@@ -388,15 +396,15 @@ POKEMON Battle(struct POKEMON r1, struct POKEMON r2)
                 }
                 break;
         }
-        printf("second:hitpoint=%d\n", (second.hitpoint>=0) ? second.hitpoint : 0);
+        //printf("second:hitpoint=%d\n", (second.hitpoint>=0) ? second.hitpoint : 0);
         if (second.hitpoint <= 0) {
             second.hitpoint = 0;
-            printf("winner : %s!\n", first.nickname);
+            //printf("winner : %s!\n", first.nickname);
             return first;
         }
 
         if (r2mv->category != Other)
-            printf("second:%s:%s\n", second.nickname, r2mv->name);
+            //printf("second:%s:%s\n", second.nickname, r2mv->name);
 
         switch (r2mv->category) {
             case Physical:
@@ -432,15 +440,15 @@ POKEMON Battle(struct POKEMON r1, struct POKEMON r2)
                 }
                 break;
         }
-        printf("first:hitpoint=%d\n", (first.hitpoint>=0) ? first.hitpoint : 0);
+        //printf("first:hitpoint=%d\n", (first.hitpoint>=0) ? first.hitpoint : 0);
         if (first.hitpoint <= 0) {
             first.hitpoint = 0;
-            printf("winner : %s!\n", second.nickname);
+            //printf("winner : %s!\n", second.nickname);
             return second;
         }
         
-        printf("turn%3d:first %10s HP=%3d :second %10s HP=%3d\n", turn, first.nickname, first.hitpoint, second.nickname, second.hitpoint);
-        printf("--------------------------------------------\n");
+        //printf("turn%3d:first %10s HP=%3d :second %10s HP=%3d\n", turn, first.nickname, first.hitpoint, second.nickname, second.hitpoint);
+        //printf("--------------------------------------------\n");
         turn++;
     }
 }
